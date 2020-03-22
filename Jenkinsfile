@@ -1,54 +1,27 @@
 pipeline {
-  agent {
-    node {
-      label 'ubuntu-1604-aufs-stable'
-    }
-  }
-  stages {
-    stage('Build result') {
-      steps {
-        sh 'docker build -t dockersamples/result ./result'
-      }
-    } 
-    stage('Build vote') {
-      steps {
-        sh 'docker build -t dockersamples/vote ./vote'
-      }
-    }
-    stage('Build worker') {
-      steps {
-        sh 'docker build -t dockersamples/worker ./worker'
-      }
-    }
-    stage('Push result image') {
-      when {
-        branch 'master'
-      }
-      steps {
-        withDockerRegistry(credentialsId: 'dockerbuildbot-index.docker.io', url:'') {
-          sh 'docker push dockersamples/result'
+    agent any
+
+    tools {
+     NodeJS 'NodeJS 4.8.6'
+           }
+
+    stages {
+        stage('Build') {
+            steps {
+                echo 'Building..'
+                sh 'npm clean compile'
+            }
         }
-      }
-    }
-    stage('Push vote image') {
-      when {
-        branch 'master'
-      }
-      steps {
-        withDockerRegistry(credentialsId: 'dockerbuildbot-index.docker.io', url:'') {
-          sh 'docker push dockersamples/vote'
+        stage('Test') {
+            steps {
+                echo 'Testing..'
+                sh 'npm test'
+            }
         }
-      }
-    }
-    stage('Push worker image') {
-      when {
-        branch 'master'
-      }
-      steps {
-        withDockerRegistry(credentialsId: 'dockerbuildbot-index.docker.io', url:'') {
-          sh 'docker push dockersamples/worker'
+        stage('package') {
+            steps {
+                echo 'Deploying....'
+            }
         }
-      }
     }
-  }
 }
